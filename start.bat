@@ -35,17 +35,12 @@ if %errorlevel% equ 0 (
     goto end
 )
 
-:: 3. Neither detected
-echo ======================================================================
-echo ERROR: Neither Node.js nor Python was detected on your system!
-echo ======================================================================
+:: 3. Neither detected - Fallback to Windows Native PowerShell HTTP Server!
+echo [DETECTED] Neither Node.js nor Python was found.
 echo.
-echo Browser security policies block WebAssembly under the file:// protocol.
+echo [FALLBACK] Starting Windows Native PowerShell HTTP Server on port 8080...
 echo.
-echo Recommended Solutions:
-echo 1. If using VS Code, right-click index.html and select "Open with Live Server".
-echo 2. Install Node.js (https://nodejs.org) or Python, then double-click this .bat again.
-echo.
-pause
+start "" "http://localhost:8080"
+powershell -NoProfile -ExecutionPolicy Bypass -File server.ps1
 
 :end
