@@ -22,8 +22,8 @@
   <header>
     <div class="nav-container">
       <div class="logo">
-        <!-- We link relative path, fallback to simple styling if logo not found -->
-        <img src="../FRC9427_Web/assets/images/logo.png" alt="FRC 9427 Logo" onerror="this.style.display='none'">
+        <!-- We link relative path inside local folder to avoid CORS/Traversal 404 error -->
+        <img src="images/logo.png" alt="FRC 9427 Logo" onerror="this.style.display='none'">
         <div class="logo-text">iDeer<span>ImageTool</span></div>
       </div>
       <div class="brand-badge">TEAM 9427 | ROBOTICS</div>
