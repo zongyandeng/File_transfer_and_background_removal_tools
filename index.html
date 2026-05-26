@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>照片去背與 WebP 轉檔工具 | FRC 9427 iDeer</title>
+  <meta name="description" content="純前端 AI 照片去背與 WebP 影像轉檔工具，支援批次多張處理、壓縮畫質調整與 ZIP 一鍵打包下載，完全在本機瀏覽器執行，保護照片穩私。">
+  
+  <!-- CSS Stylesheet -->
+  <link rel="stylesheet" href="css/style.css">
+  
+  <!-- Favicon (Fallback to original logo if available) -->
+  <link rel="icon" type="image/png" href="../FRC9427_Web/assets/images/logo.png">
+</head>
+<body>
+
+  <!-- Ambient Glow Lights -->
+  <div class="ambient-glow"></div>
+  <div class="ambient-glow-2"></div>
+
+  <!-- Header Section -->
+  <header>
+    <div class="nav-container">
+      <div class="logo">
+        <!-- We link relative path, fallback to simple styling if logo not found -->
+        <img src="../FRC9427_Web/assets/images/logo.png" alt="FRC 9427 Logo" onerror="this.style.display='none'">
+        <div class="logo-text">iDeer<span>ImageTool</span></div>
+      </div>
+      <div class="brand-badge">TEAM 9427 | ROBOTICS</div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main>
+    <div class="app-grid">
+      
+      <!-- LEFT COLUMN: CONTROLS & QUEUE -->
+      <div class="glass-card">
+        <h2 class="card-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.1a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path>
+            <circle cx="12" cy="12" r="3"></circle>
+          </svg>
+          控制與設定面板
+        </h2>
+
+        <!-- Image Upload Area -->
+        <div class="control-group">
+          <div class="upload-area" id="dropzone">
+            <div class="upload-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="17 8 12 3 7 8"></polyline>
+                <line x1="12" y1="3" x2="12" y2="15"></line>
+              </svg>
+            </div>
+            <p class="upload-text">拖曳多張照片至此或點擊選取</p>
+            <p class="upload-hint">支援 JPG, PNG, WEBP 等常见格式 (可多選)</p>
+            <input type="file" id="fileInput" accept="image/*" multiple>
+          </div>
+        </div>
+
+        <!-- Mode Select Group -->
+        <div class="control-group">
+          <span class="control-label">選擇處理模式</span>
+          <div class="mode-selectors">
+            <!-- Mode 1: Remove bg + WebP -->
+            <div class="mode-option active" data-mode="both">
+              <div class="mode-radio"></div>
+              <div class="mode-details">
+                <div class="mode-name">去背 + 轉檔 WebP (極佳推薦)</div>
+                <div class="mode-desc">AI 智慧去除背景，並存為超省空間的透明 WebP</div>
+              </div>
+            </div>
+            <!-- Mode 2: Only remove bg -->
+            <div class="mode-option" data-mode="bg-only">
+              <div class="mode-radio"></div>
+              <div class="mode-details">
+                <div class="mode-name">單純去除背景</div>
+                <div class="mode-desc">僅去除背景，並儲存為保留透明通道的 PNG 檔案</div>
+              </div>
+            </div>
+            <!-- Mode 3: Only WebP -->
+            <div class="mode-option" data-mode="webp-only">
+              <div class="mode-radio"></div>
+              <div class="mode-details">
+                <div class="mode-name">單純轉檔為 WebP</div>
+                <div class="mode-desc">保留背景，直接轉換為高壓縮率的 WebP 影像</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- WebP Quality Range Slider -->
+        <div class="control-group" id="qualityControlGroup">
+          <span class="control-label">WebP 壓縮品質</span>
+          <div class="slider-container">
+            <div class="slider-header">
+              <span>影像畫質設定</span>
+              <span class="slider-val" id="qualityValue">80%</span>
+            </div>
+            <input type="range" class="range-slider" id="qualitySlider" min="5" max="100" value="80">
+            <div class="slider-hints">
+              <span>極度壓縮 (檔案極小)</span>
+              <span>無損品質 (檔案大)</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Batch Queue Tracker Box -->
+        <div class="queue-box">
+          <div class="queue-header-actions">
+            <span class="control-label">批次處理佇列</span>
+            <div class="btn-clear-queue" id="btnClearQueue">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="3 6 5 6 21 6"></polyline>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+              </svg>
+              清空佇列
+            </div>
+          </div>
+          
+          <!-- Queue List Scrollable Container -->
+          <div class="queue-list" id="queueList">
+            <!-- Empty state fallback -->
+            <div class="queue-empty" id="queueEmptyState">
+              尚未上傳任何照片，請拖曳檔案到上方上傳區。
+            </div>
+          </div>
+        </div>
+
+        <!-- Model Download / AI Processing Progress (Global) -->
+        <div class="global-progress-bar-container" id="globalProgressBox">
+          <div class="progress-info">
+            <span id="progressStatusText">載入去背 AI 模型中...</span>
+            <span id="progressPercentText" style="font-family: var(--font-mono); font-weight: 700;">0%</span>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill" id="globalProgressFill"></div>
+          </div>
+        </div>
+
+        <!-- Action Control Buttons -->
+        <div class="action-buttons">
+          <button class="btn btn-primary" id="btnStartProcess" disabled>
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="5 3 19 12 5 21 5 3"></polygon>
+            </svg>
+            開始批次處理
+          </button>
+          <button class="btn btn-secondary" id="btnDownloadAll" disabled>
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            打包下載全部 (ZIP)
+          </button>
+        </div>
+
+      </div>
+
+      <!-- RIGHT COLUMN: BEFORE-AFTER PREVIEW -->
+      <div class="glass-card preview-container">
+        <h2 class="card-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+            <circle cx="8.5" cy="8.5" r="1.5"></circle>
+            <polyline points="21 15 16 10 5 21"></polyline>
+          </svg>
+          去背與轉檔預覽區 (Before / After)
+        </h2>
+
+        <div class="preview-body checkerboard" id="previewBody">
+          <!-- Placeholder when no image selected -->
+          <div class="preview-placeholder" id="previewPlaceholder">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+              <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+            </svg>
+            <h3>雙向影像對照系統</h3>
+            <p>在左側點選已完成處理的圖片，此處將自動載入「Before-After 滑動對比列」，讓您左右拉動檢視 AI 去背精度與 WebP 轉換品質。</p>
+          </div>
+
+          <!-- Dynamic Before-After Slider Container (hidden by default) -->
+          <div class="slider-wrapper" id="sliderWrapper" style="display: none;">
+            <!-- Background Image (Original/Before) -->
+            <img src="" class="img-before" id="imgBefore" alt="Before Original Image">
+
+            <!-- Foreground Clip Container (Processed/After) -->
+            <div class="img-overlay" id="imgOverlay">
+              <img src="" class="img-after" id="imgAfter" alt="After Processed Image">
+            </div>
+
+            <!-- Glowing Handle Bar -->
+            <div class="slider-handle" id="sliderHandle">
+              <!-- Sliding button indicator -->
+              <div class="slider-button">
+                <svg viewBox="0 0 24 24">
+                  <path d="M10 20v-6H4v-4h6V4l8 8-8 8z"></path>
+                </svg>
+              </div>
+            </div>
+
+            <!-- Absolute Invisible Slider Input to track dragging -->
+            <input type="range" class="slider-range-input" id="sliderRangeInput" min="0" max="100" value="50">
+
+            <!-- Hover Info Labels -->
+            <div class="mode-indicator-label label-before">原始圖</div>
+            <div class="mode-indicator-label label-after">處理後</div>
+          </div>
+        </div>
+
+        <div style="font-size: 0.85rem; color: var(--text-gray); display: flex; justify-content: space-between; align-items: center;">
+          <span id="previewImageInfo">未選取圖片</span>
+          <span style="font-family: var(--font-mono); color: var(--accent-cyber);" id="previewZoomInfo">100% 自適應</span>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Footer Section -->
+  <footer>
+    <p>&copy; 2026 FRC 9427 iDeer. All Rights Reserved. </p>
+    <p>Made with <span>&hearts;</span> for STEM High-School Robotics & Web Technologies</p>
+  </footer>
+
+  <!-- JSZip CDN Library (Mandatory for Batch ZIP download) -->
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+
+  <!-- Core Javascript Application (Module style) -->
+  <script src="js/main.js" type="module"></script>
+</body>
+</html>
